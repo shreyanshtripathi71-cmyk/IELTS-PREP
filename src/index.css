@@ -19,36 +19,33 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
   }
+
+  /* Premium Glass Effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-[#1e1b4b]/90 backdrop-blur-md border border-white/10;
+  }
 }
 
-/* Animation Utilities */
-@keyframes slide-in-from-right {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes slide-in-from-bottom {
+/* Animations */
+@keyframes slide-up {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes pulse-gold {
+  0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
 }
 
-.animate-in {
-  animation-fill-mode: forwards;
+.animate-slide-up {
+  animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.slide-in-from-right {
-  animation-name: slide-in-from-right;
-}
-
-.slide-in-from-bottom {
-  animation-name: slide-in-from-bottom;
-}
-
-.fade-in {
-  animation-name: fade-in;
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
 }

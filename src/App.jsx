@@ -28,7 +28,8 @@ import {
   Users,
   Globe,
   Trophy,
-  Star
+  Star,
+  Play
 } from 'lucide-react';
 
 export default function App() {
@@ -43,6 +44,9 @@ export default function App() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiMsg, setConfettiMsg] = useState({ title: '', sub: '' });
   const [weaknesses, setWeaknesses] = useState([]); 
+  
+  // Track which lesson is currently being repaired
+  const [activeLesson, setActiveLesson] = useState(null);
 
   // --- ACTIONS ---
 
@@ -61,12 +65,20 @@ export default function App() {
     ]);
   };
 
+  // MODIFIED: Takes user to Video View instead of auto-repairing
   const startRepair = (topic) => {
-    setOverlayView('repair');
+    setActiveLesson(topic);
+    setOverlayView('video-lesson');
+  };
+
+  // NEW: Called when user finishes "Watching" the video
+  const completeRepairLesson = () => {
+    setOverlayView('repair'); // Briefly show processing state
     setTimeout(() => {
-        finishAction(0.1, `${topic || 'Weakness'} Cleared`);
-        setWeaknesses(prev => prev.filter(w => w.topic !== topic));
-    }, 2500);
+        finishAction(0.1, `${activeLesson || 'Weakness'} Cleared`);
+        setWeaknesses(prev => prev.filter(w => w.topic !== activeLesson));
+        setActiveLesson(null);
+    }, 1500);
   };
 
   const startDailyMix = (type) => {
@@ -86,10 +98,10 @@ export default function App() {
   };
 
   return (
-    // Outer Container: Mobile = Full Screen, Desktop = Centered Presentation
+    // Outer Container
     <div className="w-full h-[100dvh] lg:min-h-screen lg:bg-gray-50 lg:flex lg:items-center lg:justify-center font-sans text-slate-800 bg-[#f5f5f7]">
         
-        {/* Phone Frame: Only applies styling on Large Screens (lg:) */}
+        {/* Phone Frame */}
         <div className="w-full h-full lg:w-[400px] lg:h-[860px] bg-[#f5f5f7] lg:rounded-[3.5rem] lg:ring-[14px] lg:ring-black lg:shadow-2xl overflow-hidden relative flex flex-col select-none">
             
             {/* --- STATUS BAR --- */}
@@ -156,8 +168,16 @@ export default function App() {
                     <FeedbackView onRepair={() => startRepair('Match Headings')} onClose={() => setOverlayView(null)} />
                 )}
 
+                {/* NEW VIDEO LESSON VIEW */}
+                {overlayView === 'video-lesson' && (
+                    <VideoLessonView 
+                        topic={activeLesson} 
+                        onComplete={completeRepairLesson} 
+                    />
+                )}
+
                 {overlayView === 'repair' && (
-                    <RepairView title="Updating Score..." subtitle="Analyzing performance..." />
+                    <RepairView title="Updating Score..." subtitle="Applying lesson boost..." />
                 )}
 
                 {overlayView === 'recording' && (
@@ -216,6 +236,91 @@ export default function App() {
 }
 
 // --- SUB-COMPONENTS ---
+
+// NEW: Static Video Lesson Component
+function VideoLessonView({ topic, onComplete }) {
+    return (
+        <div className="w-full h-full bg-[#f5f5f7] flex flex-col animate-in slide-in-from-bottom duration-500 z-50">
+            {/* Video Player Placeholder */}
+            <div className="w-full h-[260px] bg-black relative flex items-center justify-center shrink-0">
+                {/* Mock Thumbnail Image */}
+                <img 
+                    src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop" 
+                    alt="Lesson Thumbnail" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-60"
+                />
+                
+                {/* Play Button Overlay */}
+                <div className="relative z-10 w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                    <Play size={32} className="text-white ml-1" fill="currentColor" />
+                </div>
+
+                {/* Video Controls Mock */}
+                <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent">
+                    <div className="flex justify-between text-white text-xs font-bold mb-2">
+                        <span>0:00</span>
+                        <span>12:45</span>
+                    </div>
+                    <div className="w-full h-1 bg-white/30 rounded-full overflow-hidden">
+                        <div className="w-0 h-full bg-red-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Lesson Content */}
+            <div className="flex-1 p-6 flex flex-col">
+                <div className="flex items-start justify-between mb-4">
+                    <div>
+                        <span className="text-[#6366f1] text-[11px] font-bold uppercase tracking-wider bg-indigo-50 px-2 py-1 rounded mb-2 inline-block">
+                            Micro-Lesson
+                        </span>
+                        <h1 className="text-2xl font-bold text-[#1e1b4b] leading-tight">
+                            Mastering {topic || "Difficult Concepts"}
+                        </h1>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-slate-500 text-xs font-medium mb-6 pb-6 border-b border-slate-200">
+                    <div className="flex items-center gap-1">
+                        <Users size={14} /> 12k Students
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Star size={14} className="text-[#fbbf24] fill-[#fbbf24]" /> 4.9 Rating
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Globe size={14} /> English
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    <h3 className="font-bold text-[#1e1b4b]">In this video you will learn:</h3>
+                    <ul className="space-y-3">
+                        {['Identifying keywords correctly', 'Skimming vs Scanning techniques', 'Eliminating distractors', 'Time management strategies'].map((item, i) => (
+                            <li key={i} className="flex items-center gap-3 text-sm text-slate-600">
+                                <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                                    <Check size={12} strokeWidth={3} />
+                                </div>
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="mt-auto pt-6">
+                    <button 
+                        onClick={onComplete}
+                        className="w-full bg-[#1e1b4b] text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-900/20 active:scale-[0.98] transition-all hover:bg-[#312e81] flex items-center justify-center gap-2"
+                    >
+                        Complete Lesson & Fix Score <ChevronRight size={18} />
+                    </button>
+                    <p className="text-center text-[10px] text-slate-400 mt-3">
+                        Completing this lesson adds +0.1 to your band score.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function NavButton({ active, icon: Icon, label, onClick }) {
     return (
@@ -298,7 +403,7 @@ function HomeView({ score, isDecayed, streak, weaknesses, onVocabClick, onDailyC
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[11px] font-bold text-[#1e1b4b] flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span className="w-2 h-2 rounded-full bg-emerald-50 animate-pulse"></span>
                                 1,420 Students Online
                             </span>
                             <span className="text-[9px] text-slate-400">Practicing Reading right now</span>
